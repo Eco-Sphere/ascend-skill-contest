@@ -1,0 +1,49 @@
+{
+  "config": {
+    "api_type": "vllm_chat_completions",
+    "test_round": 3,
+    "duration": 30,
+    "request_mode": "poisson",
+    "poisson_lambda": 2,
+    "model_name": "Qwen3-8B",
+    "test_data": "sharegpt",
+    "query_round": 1,
+    "input_len": 512,
+    "output_len": 512,
+    "temperature": 0.7,
+    "top_p": 0.95,
+    "top_k": 50,
+    "stream": false
+  },
+  "stats": {
+    "total_requests": 60,
+    "successful_requests": 60,
+    "failed_requests": 0,
+    "success_rate": 1.0,
+    "throughput": 2380.0,
+    "latencies": {
+      "ttft": {
+        "mean": 0.92,
+        "p50": 0.89,
+        "p90": 0.98,
+        "p95": 1.02,
+        "p99": 1.1
+      },
+      "tpot": {
+        "mean": 0.035,
+        "p50": 0.033,
+        "p90": 0.038,
+        "p95": 0.041,
+        "p99": 0.045
+      },
+      "e2e": {
+        "mean": 2.3,
+        "p50": 2.2,
+        "p90": 2.6,
+        "p95": 2.8,
+        "p99": 3.2
+      }
+    }
+  },
+  "timestamp": "2026-03-29T15:30:00Z"
+}
