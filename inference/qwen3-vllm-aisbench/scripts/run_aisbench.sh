@@ -4,31 +4,28 @@
 set -e
 
 echo "========================================"
-echo "AISBench Qwen3-8B 性能测试脚本"
+echo "AISBench Qwen3-32B 性能测试脚本"
 echo "========================================"
 
 # 默认参数
-SERVICE_URL="http://localhost:8000/v1/chat/completions"
-CONCURRENCY_LIST="1 2 4 8 10"
-DURATION=30
+SERVICE_URL="http://localhost:8113/v1/chat/completions"
+DATASETS=("ceval_gen_0_shot_cot_chat_prompt.py" "mmlu_gen_0_shot_cot_chat_prompt.py" "gpqa_gen_0_shot_str.py" "math500_gen_0_shot_cot_chat_prompt.py")
 OUTPUT_DIR="./test_results"
 
 # 解析命令行参数
-while getopts "u:c:d:o:h" opt; do
+while getopts "u:d:o:h" opt; do
   case $opt in
     u) SERVICE_URL="$OPTARG" ;;
-    c) CONCURRENCY_LIST="$OPTARG" ;;
-    d) DURATION="$OPTARG" ;;
+    d) DATASETS=($OPTARG) ;;
     o) OUTPUT_DIR="$OPTARG" ;;
-    h) echo "Usage: $0 [-u service_url] [-c concurrency_list] [-d duration] [-o output_dir]" && exit 0 ;;
+    h) echo "Usage: $0 [-u service_url] [-d datasets] [-o output_dir]" && exit 0 ;;
     *) echo "Invalid option -$OPTARG" >&2 && exit 1 ;;
   esac
 done
 
 echo "\n测试参数："
 echo "- 服务地址：$SERVICE_URL"
-echo "- 并发数列表：$CONCURRENCY_LIST"
-echo "- 测试时长：$DURATION 秒"
+echo "- 测试数据集：${DATASETS[@]}"
 echo "- 结果输出：$OUTPUT_DIR"
 
 # 创建输出目录
@@ -43,45 +40,47 @@ fi
 echo "✅ AISBench已安装"
 
 # 创建AISBench配置文件
-CONFIG_FILE="$OUTPUT_DIR/aisbench_config.yaml"
-echo "\n2. 创建AISBench配置文件..."
-cat > "$CONFIG_FILE" << EOF
-api_type: vllm_chat_completions
-test_round: 3
-duration: $DURATION
-request_mode: poisson
-poisson_lambda: 1
-model_name: Qwen3-8B
-test_data: sharegpt
-query_round: 1
-input_len: 512
-output_len: 512
-temperature: 0.7
-top_p: 0.95
-top_k: 50
-stream: false
+echo "\n2. 配置AISBench..."
+# 确保配置文件存在
+ais_bench_config_dir="~/.ais_bench/configs/models/vllm_api"
+mkdir -p "$ais_bench_config_dir"
+
+# 创建或更新配置文件
+vllm_config_file="$ais_bench_config_dir/vllm_api_general_chat.py"
+cat > "$vllm_config_file" << EOF
+from ais_bench.benchmark.models import VLLMCustomAPIChat
+from ais_bench.benchmark.utils.model_postprocessors import extract_non_reasoning_content
+
+models = [
+    dict(
+        attr="service",
+        type=VLLMCustomAPIChat,
+        abbr='vllm-api-general-chat',
+        path="vllm-ascend/Qwen3-32B-W8A8",
+        model="qwen3",
+        request_rate=0,
+        retry=2,
+        host_ip="localhost",
+        host_port=8113,
+        max_out_len=4096,
+        temperature=0.6,
+        top_p=0.95,
+        top_k=20,
+        stream=False
+    )
+]
 EOF
 
-echo "✅ 配置文件创建完成：$CONFIG_FILE"
+echo "✅ AISBench配置完成：$vllm_config_file"
 
 # 运行测试
 echo "\n3. 开始性能测试..."
 
-for concurrency in $CONCURRENCY_LIST; do
-    echo "\n📊 正在测试并发数：$concurrency"
-    
-    # 临时配置文件
-    TEMP_CONFIG="$OUTPUT_DIR/aisbench_temp_${concurrency}.yaml"
-    cp "$CONFIG_FILE" "$TEMP_CONFIG"
-    
-    # 更新并发数
-    sed -i "s/^poisson_lambda:.*/poisson_lambda: $concurrency/" "$TEMP_CONFIG"
+for dataset in "${DATASETS[@]}"; do
+    echo "\n📊 正在测试数据集：$dataset"
     
     # 运行测试
-    ais-bench-llm -c "$TEMP_CONFIG" -s "$SERVICE_URL" --output-path "$OUTPUT_DIR/result_${concurrency}.json"
-    
-    # 删除临时配置
-    rm "$TEMP_CONFIG"
+    ais_bench --models vllm_api_general_chat --datasets "$dataset" --summarizer default_perf --mode perf --output-path "$OUTPUT_DIR/result_${dataset%.py}.json"
 done
 
 echo "\n✅ 所有测试完成！"

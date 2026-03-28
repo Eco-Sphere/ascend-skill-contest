@@ -1,29 +1,27 @@
 #!/bin/bash
-# Qwen3-8B vLLM-Ascend 完整部署与测试流程脚本
+# Qwen3-32B vLLM-Ascend 完整部署与测试流程脚本
 
 set -e
 
 echo "========================================"
-echo "Qwen3-8B vLLM-Ascend 完整部署与测试流程"
+echo "Qwen3-32B vLLM-Ascend 完整部署与测试流程"
 echo "========================================"
 
 # 默认参数
-MODEL_PATH="/data/models/Qwen3-8B"
-SERVICE_PORT=8000
+MODEL_PATH="/data/models/Qwen3-32B"
+SERVICE_PORT=8113
 CONTAINER_NAME="vllm-ascend-qwen3"
-CONCURRENCY_LIST="1 2 4 8 10"
-DURATION=30
+DATASETS=("ceval_gen_0_shot_cot_chat_prompt.py" "mmlu_gen_0_shot_cot_chat_prompt.py" "gpqa_gen_0_shot_str.py" "math500_gen_0_shot_cot_chat_prompt.py")
 OUTPUT_DIR="./test_results"
 
 # 解析命令行参数
-while getopts "p:o:c:n:d:h" opt; do
+while getopts "p:o:n:d:h" opt; do
   case $opt in
     p) MODEL_PATH="$OPTARG" ;;
     o) SERVICE_PORT="$OPTARG" ;;
-    c) CONCURRENCY_LIST="$OPTARG" ;;
     n) CONTAINER_NAME="$OPTARG" ;;
     d) OUTPUT_DIR="$OPTARG" ;;
-    h) echo "Usage: $0 [-p model_path] [-o service_port] [-c concurrency_list] [-n container_name] [-d output_dir]" && exit 0 ;;
+    h) echo "Usage: $0 [-p model_path] [-o service_port] [-n container_name] [-d output_dir]" && exit 0 ;;
     *) echo "Invalid option -$OPTARG" >&2 && exit 1 ;;
   esac
 done
@@ -32,8 +30,7 @@ echo "\n流程参数："
 echo "- 模型路径：$MODEL_PATH"
 echo "- 服务端口：$SERVICE_PORT"
 echo "- 容器名称：$CONTAINER_NAME"
-echo "- 并发数列表：$CONCURRENCY_LIST"
-echo "- 测试时长：$DURATION 秒"
+echo "- 测试数据集：${DATASETS[@]}"
 echo "- 结果输出：$OUTPUT_DIR"
 
 # 确保脚本目录正确
@@ -51,7 +48,7 @@ echo "步骤 2：使用 AISBench 进行性能测试"
 echo "========================================"
 
 # 执行测试脚本
-"$SCRIPT_DIR/run_aisbench.sh" -u "http://localhost:$SERVICE_PORT/v1/chat/completions" -c "$CONCURRENCY_LIST" -d "$DURATION" -o "$OUTPUT_DIR"
+"$SCRIPT_DIR/run_aisbench.sh" -u "http://localhost:$SERVICE_PORT/v1/chat/completions" -o "$OUTPUT_DIR"
 
 echo "\n========================================"
 echo "步骤 3：分析测试结果并生成报告"
