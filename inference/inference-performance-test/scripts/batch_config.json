@@ -1,0 +1,36 @@
+{
+  "test_cases": [
+    {
+      "api_url": "http://localhost:8000",
+      "concurrency_range": [1, 10],
+      "input_len_range": [50, 100],
+      "output_len_range": [100, 200],
+      "sampling_params": {
+        "temperature": 0.7,
+        "top_p": 0.95
+      },
+      "dataset": "sharegpt",
+      "duration": 30,
+      "requirements": {
+        "ttft": 2000,
+        "tpot": 50
+      }
+    },
+    {
+      "api_url": "http://localhost:8001",
+      "concurrency_range": [1, 5],
+      "input_len_range": [100, 200],
+      "output_len_range": [200, 300],
+      "sampling_params": {
+        "temperature": 0.8,
+        "top_p": 0.9
+      },
+      "dataset": "alpaca",
+      "duration": 30,
+      "requirements": {
+        "ttft": 3000,
+        "tpot": 60
+      }
+    }
+  ]
+}
