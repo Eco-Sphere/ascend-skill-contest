@@ -1,0 +1,48 @@
+# verl GRPO 训练配置模板
+# 使用方式: 将占位符替换为实际值后运行
+
+algorithm:
+  adv_estimator: grpo
+  norm_adv_by_std_in_grpo: True
+  gamma: 1.0
+  lam: 1.0
+  kl_ctrl:
+    type: fixed
+    kl_coef: 0.001
+    target_kl: 0.1
+
+data:
+  train_files: <train_parquet_path>
+  val_files: <val_parquet_path>
+  train_batch_size: <batch_size>
+  max_prompt_length: 256
+  max_response_length: 256
+
+actor_rollout_ref:
+  model:
+    path: <model_path>
+    enable_gradient_checkpointing: True
+    use_remove_padding: True
+  actor:
+    optim:
+      lr: 3e-6
+      optimizer: AdamW
+    ppo_micro_batch_size_per_gpu: 1
+    grad_clip: 1.0
+  rollout:
+    name: vllm
+    gpu_memory_utilization: <gpu_mem_util>
+    n: <rollout_n>
+    tensor_model_parallel_size: <tp_size>
+
+trainer:
+  project_name: verl_grpo_demo
+  experiment_name: <experiment_name>
+  device: npu
+  n_gpus_per_node: <n_gpus>
+  save_freq: <save_freq>
+  test_freq: <test_freq>
+  total_epochs: 1
+  total_training_steps: <total_steps>
+  logger: ["console"]
+  default_local_dir: <checkpoint_dir>

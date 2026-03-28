@@ -1,0 +1,53 @@
+{
+  "variables": {
+    "work_dir": {
+      "description": "宿主机工作目录（挂载到容器内 /home/<user>）",
+      "example": "/home/zzw30069617",
+      "required": true
+    },
+    "model_path": {
+      "description": "模型路径",
+      "example": "/home/z30069617/models/Qwen3-0.6B",
+      "required": true
+    },
+    "train_data": {
+      "description": "训练数据parquet文件路径",
+      "example": "/home/z30069617/datasets/gsm8k/processed/train.parquet",
+      "required": true
+    },
+    "val_data": {
+      "description": "验证数据parquet文件路径",
+      "example": "/home/z30069617/datasets/gsm8k/processed/val.parquet",
+      "required": true
+    },
+    "n_gpus": {
+      "description": "使用的NPU卡数",
+      "example": "8",
+      "default": 8,
+      "enum": [1, 2, 4, 8]
+    },
+    "npu_ids": {
+      "description": "NPU设备ID列表",
+      "example": "0-7",
+      "default": "0-7"
+    }
+  },
+  "paths": {
+    "container_work_dir": "/home/{user}",
+    "verl_repo": "{work_dir}/verl",
+    "checkpoint_dir": "{work_dir}/checkpoints",
+    "log_file": "{work_dir}/training_log.txt"
+  },
+  "images": {
+    "verl": "quay.io/ascend/verl:verl-8.3.rc1-910b-ubuntu22.04-py3.11-latest"
+  },
+  "container": {
+    "name": "verl-npu",
+    "mounts": {
+      "home": "/home:/home",
+      "driver": "/usr/local/Ascend/driver:/usr/local/Ascend/driver:ro",
+      "add_ons": "/usr/local/Ascend/add-ons:/usr/local/Ascend/add-ons:ro",
+      "sbin": "/usr/local/sbin:/usr/local/sbin:ro"
+    }
+  }
+}
