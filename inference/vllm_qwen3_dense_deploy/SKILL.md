@@ -46,6 +46,7 @@ description: 使用 vllm-Ascend 在线部署Qwen3-Dense系列模型服务。触�
    pip show vllm
    pip show vllm-ascend
    ```
+   如果vLLM环境未安装，请参考 references/vllm_env_install.md，通过镜像容器部署安装环境。
 
 2. **NPU环境确认**
    ```bash
@@ -60,6 +61,7 @@ description: 使用 vllm-Ascend 在线部署Qwen3-Dense系列模型服务。触�
 ```BASH
 pip list | grep vllm
 ```
+如果vLLM环境未安装，请参考 references/vllm_env_install.md，通过镜像容器部署安装环境。
 
 2. 查看NPU环境，设置device
 通过`npu-smi info`命令查看哪张卡空着。
@@ -71,7 +73,7 @@ export ASCEND_RT_VISIBLE_DEVICES=
 
 ### 步骤2：使用vllm serve命令拉起模型在线服务
 1. 准备脚本：
-根据 vllm-ascend-deploy skill，查阅 `reference/vllm_ascend_deploy_qwen3_dense.md`中的Online Inference on Multi-NPU章节，在工作目录下生成deploy_xx.sh脚本文件，需要配置服务化参数：
+查阅 `reference/vllm_deploy.md`，在工作目录下生成deploy_xx.sh脚本文件，需要配置服务化参数：
 - `vllm serve vllm-ascend/Qwen3-32B-W8A8`: 需要把`vllm-ascend`改成模型路径
 - `model`: qwen3 (vLLM 注册的模型名)
 - `host_ip`: localhost
@@ -83,7 +85,7 @@ export ASCEND_RT_VISIBLE_DEVICES=
 
 ### 步骤3：使用curl命令测试
 1. 准备脚本：
-查阅 `reference/vllm_ascend_deploy_qwen3_dense.md`中的Online Inference on Multi-NPU章节，生成test_xx.sh文件，在文件中，使用 curl 请求验证服务是否能正常处理请求。
+查阅 `reference/vllm_deploy.md`，在工作生成test_xx.sh文件，在文件中，使用 curl 请求验证服务是否能正常处理请求。
 
 2. 请求测试：
 执行test_xx.sh文件，发送请求后能正常返回，且返回的内容符合逻辑。
@@ -107,5 +109,5 @@ test_xx.sh脚本发送请求后能正常返回，且返回的内容符合逻辑�
 3. **结果记录**：记录请求的问题和返回的内容结果保存到工作目录文件中。
 
 ## 故障排除
-对于参数详情和测试结果解读，查阅 `reference/vllm_ascend_deploy_qwen3_dense.md`。
+对于参数详情和测试结果解读，查阅vLLM-Ascend Docs： https://docs.vllm.ai/projects/ascend/en/latest/tutorials/models/Qwen3-Dense.html。
 
